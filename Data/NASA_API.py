@@ -1,5 +1,6 @@
 import requests
 import webbrowser
+
 from urllib.parse import urlencode
 class NASA_API:
     BASE_URL = "https://api.nasa.gov"
