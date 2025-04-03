@@ -1,49 +1,34 @@
 import requests
-from urllib.parse import urlencode
 
-class AniListAuth:
-    auth_url = "https://anilist.co/api/v2/oauth/authorize"
-    token_tmp = "https://anilist.co/api/v2/oauth/token"
-    api_url = "https://graphql.anilist.co"
+class MyAnimeListAPI:
+    base_url = "https://api.myanimelist.net/v2/anime/"
+    ranking_url = "https://api.myanimelist.net/v2/anime/ranking"
 
-    def __init__(self, client_id, client_secret, redirect_uri):
+    # Contructor para inicializar el cliente_id
+    def __init__(self, client_id):
         self.client_id = client_id
-        self.client_secret = client_secret
-        self.redirect_uri = redirect_uri
-        self.access_token = None
+    
+    # Metodo para obtener la lista de animes con el ranking por popularidad
+    def get_popular_anime(self):
+        return self.get_anime_ranking("bypopularity")
 
-    def get_auth_url(self):
-        params = {
-            "client_id": self.client_id,
-            "redirect_uri": self.redirect_uri,
-            "response_type": "code",
-        }
-        return f"{self.auth_url}?{urlencode(params)}"
+    # Metodo para obtener la lista de animes con el ranking por actualmente en emision
+    def get_airing_anime(self):
+        return self.get_anime_ranking("airing")
 
-    def get_access_token(self, auth_code):
-        data = {
-            "grant_type": "authorization_code",
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-            "redirect_uri": self.redirect_uri,
-            "code": auth_code,
-        }
-        response = requests.post(self.token_tmp, data=data)
-        token_data = response.json()
-        self.access_token = token_data.get("access_token")
-        return self.access_token
+    # Metodo para obtener la lista de animes con el ranking por animes que van a salir en emision
+    def get_upcoming_anime(self):
+        return self.get_anime_ranking("upcoming")
 
-    def get_user_data(self):
-        if not self.access_token:
-            raise ValueError("Access token is required.")
-        query = """
-        query {
-            Viewer {
-                id
-                name
-            }
-        }
-        """
-        headers = {"Authorization": f"Bearer {self.access_token}"}
-        response = requests.post(self.api_url, json={"query": query}, headers=headers)
+    def get_anime_byId(self, anime_id):
+            url = f"{self.BASE_URL}{anime_id}?fields=id,title,main_picture,start_date,end_date,synopsis,mean,rank,popularity,media_type,status,num_episodes,start_season,genres"
+            headers = {"X-MAL-CLIENT-ID": self.client_id}
+            response = requests.get(url, headers=headers)
+            return response.json()
+        
+    # Metodo par adevolver los animes con el ranking pasado como parametro
+    def get_anime_ranking(self, ranking_type):
+        url = f"{self.RANKING_URL}?ranking_type={ranking_type}"
+        headers = {"X-MAL-CLIENT-ID": self.client_id}
+        response = requests.get(url, headers=headers)
         return response.json()
