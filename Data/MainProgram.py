@@ -274,4 +274,56 @@ if __name__ == "__main__":
     token_obtenido = program.getSources("anilist")
 
     print(f"Token final obtenido: {token_obtenido}")
+
+#----------------------------------------------------------------------
+#Clase para la lectura del archivo .yml que contiene la configuracion de la api a consultar.
+
+    #Lee el archivo .yml que el cliente introduce para obtener el nombre de la api que quiere consultar para luego pasarla a la funcion getApiConfig
+    def getApiName(self):
+        with open(self.yaml_file, "r") as file:
+            data = yaml.safe_load(file)
+        api_name = data.get("origin")
+        if not api_name:
+            raise ValueError("No se encontró el campo 'origin' en el archivo .yml")
+        return api_name
+    
+#Recibe el nom de la api y luego lee el archivo arq_api_surce_config para coger la info de la api que se va a consultar.
+    def getApiConfig(self, api_name):
+        with open("arq_api_source_config.yml", "r") as file:
+            config = yaml.safe_load(file)
+        for api in config.get("apis", []):
+            if api_name in api_name:
+                return api[api_name]
+            
+        raise ValueError(f"No se encontró la configuración para la API: {api_name}")
+
+#Construye una url dinamica con el nombre de la api, la base url y el endpoint path 
+    def buildApiUrl(self, api_name, endpoint_name, params=None):
+        api_config = self.getApiConfig(api_name)
+        base_url = api_config.get["base_url"]
+        endpoint_path = api_config["endpoints"][endpoint_name]
+
+        endpoint_filled = endpoint_path.format(**params)
+        return f"{base_url}{endpoint_filled}"
+
+#Recibe la url de la api para hacer la consulta y el token de getsources para la autenticacion. Devolviendo la info en .json
+    def callApi (self, api_name, endpoint_name, params):
+
+        url = self.buildApiUrl(api_name, endpoint_name, params) #variable intermedia para facilitar el debbuging. Se puede imprimir la url para comprobar
+        token = self.getSources(api_name)
+
+        headers = {
+            "Authorization": f"Bearer {token}" } if token else {}
+        response = requests.get(url, headers=headers)
+        return response.json()
+       
+
+#Falta acabar y mejorar la estructura       
+    if __name__ == "__main__":
+        try: 
+            yaml_file = input("Introduce el nombre de tu archvo .yml: ")
+            if not yaml_file.endswith((".yml", ".yaml")):
+                raise ValueError("El archivo debe tener una extensión .yml o .yaml")
+        
+    
  
