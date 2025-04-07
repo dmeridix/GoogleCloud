@@ -27,7 +27,7 @@ class MainProgram:
         self.auth_code = None
         self.shutdown_event = threading.Event()
  
-    # Método principal para obtener el token temporal
+    # Método principal para obtener el token para las consultas
     def getSources(self, api_name):
         try:
             with open(self.yaml_file, "r") as file:
@@ -190,23 +190,24 @@ if __name__ == "__main__":
         raise ValueError(f"No se encontró la configuración para la API: {api_name}")
 
 #Construye una url dinamica con el nombre de la api, la base url y el endpoint path 
-    def buildNasaConsult(self, endpoint_name, params, api_format):
+    def buildNasaConsult(self, endpoint_name, params, api_format, info_api):
         
 
-    def buildMyAnimeConsult(self, endpoint_name, params, api_format):
+    def buildMyAnimeConsult(self, endpoint_name, params, api_format, info_api):
         
-    def buildAniListConsult(self, endpoint_name, body, api_format):
+    def buildAniListConsult(self, endpoint_name, body, api_format, info_api):
         
     
 
 #Recibe la url de la api para hacer la consulta y el token de getsources para la autenticacion. Devolviendo la info en .json
     def callApi (self, api_name, endpoint_name, params, api_format):
-        if api_name ==  nasa:
-            response = buildNasaConsult(endpoint_name, params, api_format)
-        elif api_name ==  myanimelist:
-            response = buildMyAnimeConsult(endpoint_name, params, api_format)
+        info_api = getApiConfig()
+        if api_name ==  "nasa":
+            response = buildNasaConsult(endpoint_name, params, api_format, info_api)
+        elif api_name ==  "myanimelist":
+            response = buildMyAnimeConsult(endpoint_name, params, api_format, info_api)
         else:
-            response = buildAniListConsult(endpoint_name, params, api_format)
+            response = buildAniListConsult(endpoint_name, params, api_format, info_api)
         
         return response.json()
        
