@@ -190,23 +190,24 @@ if __name__ == "__main__":
         raise ValueError(f"No se encontró la configuración para la API: {api_name}")
 
 #Construye una url dinamica con el nombre de la api, la base url y el endpoint path 
-    def buildApiUrl(self, api_name, endpoint_name, params=None):
-        api_config = self.getApiConfig(api_name)
-        base_url = api_config.get["base_url"]
-        endpoint_path = api_config["endpoints"][endpoint_name]
+    def buildNasaConsult(self, endpoint_name, params, api_format):
+        
 
-        endpoint_filled = endpoint_path.format(**params)
-        return f"{base_url}{endpoint_filled}"
+    def buildMyAnimeConsult(self, endpoint_name, params, api_format):
+        
+    def buildAniListConsult(self, endpoint_name, body, api_format):
+        
+    
 
 #Recibe la url de la api para hacer la consulta y el token de getsources para la autenticacion. Devolviendo la info en .json
-    def callApi (self, api_name, endpoint_name, params):
-
-        url = self.buildApiUrl(api_name, endpoint_name, params) #variable intermedia para facilitar el debbuging. Se puede imprimir la url para comprobar
-        token = self.getSources(api_name)
-
-        headers = {
-            "Authorization": f"Bearer {token}" } if token else {}
-        response = requests.get(url, headers=headers)
+    def callApi (self, api_name, endpoint_name, params, api_format):
+        if api_name ==  nasa:
+            response = buildNasaConsult(endpoint_name, params, api_format)
+        elif api_name ==  myanimelist:
+            response = buildMyAnimeConsult(endpoint_name, params, api_format)
+        else:
+            response = buildAniListConsult(endpoint_name, params, api_format)
+        
         return response.json()
        
 
