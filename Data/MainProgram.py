@@ -1,4 +1,6 @@
 import requests
+
+import requests
 import webbrowser
 import time
 import threading
@@ -97,6 +99,10 @@ class MainProgram:
 
                 # HTML con JavaScript para cerrar la pestaña automáticamente
                 return """
+                <html>
+                    <body>
+                        <p>Autorización completada. Esta ventana se cerrará automáticamente.</p>
+                        <script>
                 <html>
                     <body>
                         <p>Autorización completada. Esta ventana se cerrará automáticamente.</p>
