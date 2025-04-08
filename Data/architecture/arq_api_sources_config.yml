@@ -11,6 +11,7 @@ apis:
   - myanimelist:
     base_url: "https://api.myanimelist.net/v2/anime/"
     api_format: "X-MAL-CLIENT-ID"
+    
     endpoints:
       anime_ranking: "ranking?ranking_type={ranking_type}"
       anime_byId: "{id}?fields={fields}"

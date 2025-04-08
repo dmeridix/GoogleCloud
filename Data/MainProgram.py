@@ -189,11 +189,39 @@ if __name__ == "__main__":
             
         raise ValueError(f"No se encontró la configuración para la API: {api_name}")
 
-#Construye una url dinamica con el nombre de la api, la base url y el endpoint path 
-    def buildNasaConsult(self, endpoint_name, params, api_format, info_api):
+
+    def buildNasaConsult(self, info_api, params, api_name):
+        base_url = info_api.get("base_url")
+        enpoint = info_api.get("endpoint")
+        api_format = info_api.get("api_format")
+        
+        token = self.getSources(api_name)
+        if not token:
+             raise ValueError(f"No se pudo obtener el token para la API '{api_name}'")
+        
+        url = base_url + enpoint.format(**params) + token
+        
+        response = requests.get(url)
+        return response
         
 
-    def buildMyAnimeConsult(self, endpoint_name, params, api_format, info_api):
+    def buildMyAnimeConsult(self, info_api, params, api_name):
+        base_url = info_api.get("base_url")
+        endpoint_name = params.get("endpoint")
+        
+        try:
+            endpoint = info_api["endpoints"][endpoint_name].format(**params)
+        except KeyError as e:
+            raise ValueError(f"Falta el parámetro requerido en 'params': {e}")
+        
+        api_format = info_api.get("api_format")
+        token = self.getSources(api_name)
+        
+        url = base_url + endpoint
+        headers = {api_format: token} if token else {}
+        
+        response = requests.get(url, headers=headers)
+        return response
         
     def buildAniListConsult(self, endpoint_name, body, api_format, info_api):
         
