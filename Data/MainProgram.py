@@ -143,28 +143,7 @@ class MainProgram:
 
         except requests.exceptions.RequestException as e:
             print("Error al obtener el token")
-"""
-if __name__ == "__main__":
-    program = MainProgram()
-    auth_config = program.getSources("anilist")
- 
-    if auth_config is None:
-        try:
-            with open(program.yaml_file, "r") as file:
-                data = yaml.safe_load(file)
-            apis = data.get("apis", [])
-            for api in apis:
-                if "anilist" in api:
-                    auth_config = api["anilist"]["auth"]
-                    break
-        except Exception as e:
-            print(f"Error al leer el archivo YAML: {e}")
- 
-        program.start_flask_server(auth_config)
- 
-    token_obtenido = program.getSources("anilist")
-    print(f"Token final obtenido: {token_obtenido}")
-"""
+
 #----------------------------------------------------------------------
 
     # Lee el archivo .yml que el cliente introduce para obtener el nombre de la api que quiere consultar
@@ -213,10 +192,11 @@ if __name__ == "__main__":
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
-        query_type = body.get("query_type")
-        query_params = body.get("query_params", {})
         
-        if query_type == "search_by_id":
+        endpoint = body.get("endpoint")
+        params = body.get("query_params", {})
+        
+        if endpoint == "search_by_id":
             graphql_query = {
                 "query": """
                     query ($id: Int) {
@@ -233,9 +213,9 @@ if __name__ == "__main__":
                         }
                     }
                 """,
-                "variables": {"id": query_params.get("id")},
+                "variables": {"id": params.get("id")},
             }
-        elif query_type == "search_by_name":
+        elif endpoint == "search_by_name":
             graphql_query = {
                 "query": """
                     query ($name: String, $page: Int, $perPage: Int) {
@@ -253,14 +233,14 @@ if __name__ == "__main__":
                             }
                         }
                     }
-            """,
-            "variables": {
-                "name": query_params.get("name"),
-                "page": page,
-                "perPage": perPage
-            },
-        }
-        elif query_type == "search_by_genre":
+                """,
+                "variables": {
+                    "name": params.get("name"),
+                    "page": page,
+                    "perPage": perPage,
+                },
+            }
+        elif endpoint == "search_by_genre":
             graphql_query = {
                 "query": """
                     query ($genre: String, $page: Int, $perPage: Int) {
@@ -280,17 +260,17 @@ if __name__ == "__main__":
                     }
                 """,
                 "variables": {
-                    "genre": query_params.get("genre"),
+                    "genre": params.get("genre"),
                     "page": page,
-                    "perPage": perPage
+                    "perPage": perPage,
                 },
             }
         else:
-            raise ValueError(f"Consulta no identificada: {query_type}")
+            raise ValueError(f"Endpoint no identificado: {endpoint}")
         
         response = requests.post(base_url, json=graphql_query, headers=headers)
         return response
-"""
+
 
 if __name__ == "__main__":
     try:
@@ -305,4 +285,3 @@ if __name__ == "__main__":
         print(result)
     except Exception as e:
         print(f"Error: {e}")
-"""
