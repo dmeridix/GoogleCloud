@@ -143,28 +143,7 @@ class MainProgram:
 
         except requests.exceptions.RequestException as e:
             print("Error al obtener el token")
-"""
-if __name__ == "__main__":
-    program = MainProgram()
-    auth_config = program.getSources("anilist")
- 
-    if auth_config is None:
-        try:
-            with open(program.yaml_file, "r") as file:
-                data = yaml.safe_load(file)
-            apis = data.get("apis", [])
-            for api in apis:
-                if "anilist" in api:
-                    auth_config = api["anilist"]["auth"]
-                    break
-        except Exception as e:
-            print(f"Error al leer el archivo YAML: {e}")
- 
-        program.start_flask_server(auth_config)
- 
-    token_obtenido = program.getSources("anilist")
-    print(f"Token final obtenido: {token_obtenido}")
-"""
+
 #----------------------------------------------------------------------
 
     # Lee el archivo .yml que el cliente introduce para obtener el nombre de la api que quiere consultar
@@ -219,9 +198,6 @@ if __name__ == "__main__":
         response = requests.get(url, headers=headers)
         return response
         
-    def buildAniListConsult(self, endpoint_name, body, api_format, info_api):
-        
-    
 
 
     # Llama a la API correspondiente según el nombre de la API
