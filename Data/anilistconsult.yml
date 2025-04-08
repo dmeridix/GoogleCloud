@@ -1,0 +1,12 @@
+origin: anilist
+base_name: gesw1_bqds
+jobs:
+- endpoint: search_by_name
+  query_params:
+    name: "Death"
+  output_table: "anilist_search_results"
+  output_mode: overwrite
+  extraction_column: "ARQPIB_FEC_PART"
+  curated_layer: false
+  final_layer: master
+  date_format: "%Y%m%d"

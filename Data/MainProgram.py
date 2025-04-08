@@ -6,6 +6,7 @@ from urllib.parse import urlencode
 import yaml
 import os
 import logging
+import json
 from flask import Flask, request
 
 # Desactivar logs de Flask (werkzeug)
@@ -15,7 +16,7 @@ log.setLevel(logging.ERROR)
 class MainProgram:
     TOKEN_URL = "https://anilist.co/api/v2/oauth/token"
     API_URL = "https://graphql.anilist.co"
-    yaml_file = r"C:\Users\DANIELMERIDACORDERO\GoogleCloud\Data\architecture\arq_apicredentials_config.yml"
+    yaml_file = r"Data/architecture/arq_apicredentials_config.yml"
 
     # Constructor para inicializar las propiedades de la clase
     def __init__(self):
@@ -157,7 +158,7 @@ class MainProgram:
 
     # Recibe el nombre de la api y luego lee el archivo arq_api_source_config para coger la info de la api que se va a consultar
     def getApiConfig(self, api_name):
-        with open("arq_api_source_config.yml", "r") as file:
+        with open("Data/architecture/arq_api_sources_config.yml", "r") as file:
             config = yaml.safe_load(file)
         for api in config.get("apis", []):
             if api_name in api:
@@ -302,16 +303,35 @@ class MainProgram:
         return response
 
 
+
 if __name__ == "__main__":
     try:
         yaml_file = input("Introduce el nombre de tu archivo .yml: ")
         if not yaml_file.endswith((".yml", ".yaml")):
             raise ValueError("El archivo debe tener una extensión .yml o .yaml")
+        
         program = MainProgram()
         program.yaml_file = yaml_file
-        api_name = program.getApiName()
-        body = {"query": "{ Viewer { id name } }"}  # Ejemplo de cuerpo para AniList
+        
+        with open(yaml_file, "r") as file:
+            data = yaml.safe_load(file)
+        
+        api_name = data.get("origin")
+        if not api_name:
+            raise ValueError("No se encontró el campo 'origin' en el archivo .yml")
+        
+        body = data.get("jobs", [{}])[0]
+        
         result = program.callApi(api_name, body)
-        print(result)
+        
+        output_folder = "output_results"
+        os.makedirs(output_folder, exist_ok=True)
+        
+        output_file = os.path.join(output_folder, f"{api_name}_result.json")
+        with open(output_file, "w", encoding="utf-8") as json_file:
+            json.dump(result, json_file, ensure_ascii=False, indent=4)
+        
+        print(f"Resultado guardado en: {output_file}")
+    
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error main: {e}")
