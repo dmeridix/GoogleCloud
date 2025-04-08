@@ -164,42 +164,7 @@ class MainProgram:
             if api_name in api:
                 return api[api_name]
         raise ValueError(f"No se encontró la configuración para la API: {api_name}")
-
-
-    def buildNasaConsult(self, info_api, params, api_name):
-        base_url = info_api.get("base_url")
-        enpoint = info_api.get("endpoint")
-        api_format = info_api.get("api_format")
-        
-        token = self.getSources(api_name)
-        if not token:
-             raise ValueError(f"No se pudo obtener el token para la API '{api_name}'")
-        
-        url = base_url + enpoint.format(**params) + token
-        
-        response = requests.get(url)
-        return response
-        
-
-    def buildMyAnimeConsult(self, info_api, params, api_name):
-        base_url = info_api.get("base_url")
-        endpoint_name = params.get("endpoint")
-        
-        try:
-            endpoint = info_api["endpoints"][endpoint_name].format(**params)
-        except KeyError as e:
-            raise ValueError(f"Falta el parámetro requerido en 'params': {e}")
-        
-        api_format = info_api.get("api_format")
-        token = self.getSources(api_name)
-        
-        url = base_url + endpoint
-        headers = {api_format: token} if token else {}
-        
-        response = requests.get(url, headers=headers)
-        return response
-        
-
+ 
 
     # Llama a la API correspondiente según el nombre de la API
     def callApi(self, api_name, params):
@@ -212,7 +177,59 @@ class MainProgram:
             response = self.buildAniListConsult(info_api.get("base_url"), params, api_name)
         return response.json()
 
-    # Métodos para construir consultas específicas (placeholder)
+    # Métodos para construir consultas específicas (placeholder)-------------
+    
+    def buildNasaConsult(self, info_api, params, api_name):
+        base_url = info_api.get("base_url")
+        endpoint_name = params.get("endpoint")
+        api_format = info_api.get("api_format")
+        
+        try:
+            raw_endpoint = info_api["endpoints"][endpoint_name]
+        except KeyError as e:
+            raise ValueError(f"El endpoint '{endpoint_name}' no está definido en la config de la API '{api_name}'")
+        
+        # Formatea el endpoint con los parámetros que se hayan proporcionado
+        try:
+            endpoint = raw_endpoint.format(**params)
+        except KeyError as e:
+            raise ValueError(f"Falta el parámetro requerido en 'params' para formatear el endpoint: {e}")
+        
+        
+        token = self.getSources(api_name)
+        if not token:
+             raise ValueError(f"No se pudo obtener el token para la API '{api_name}'")
+        
+        # Construye la URL final, añadiendo el token como un parámetro en la URL
+        url = f"{base_url}{endpoint}&{api_format}={token}" 
+        
+        response = requests.get(url)
+        return response
+        
+
+    def buildMyAnimeConsult(self, info_api, params, api_name):
+        base_url = info_api.get("base_url")
+        endpoint_name = info_api.get("endpoint")
+        
+        #formatea el endpoint con los parámetros que se hayan proporcionado
+        try:
+            endpoint = info_api["endpoints"][endpoint_name].format(**params)
+        except KeyError as e:
+            raise ValueError(f"Falta el parámetro requerido en 'params': {e}")
+        
+        # Obtiene el formato de autenticación (api_format) y el token de autenticación
+        api_format = info_api.get("api_format")
+        token = self.getSources(api_name)
+        
+        url = base_url + endpoint
+        
+        # Configura los encabezados para la solicitud, agregando el token con el formato correspondiente
+        headers = {
+            api_format: token
+        } 
+        
+        response = requests.get(url, headers=headers)
+        return response
 
 
     def buildAniListConsult(self, base_url, body, api_name):
@@ -223,11 +240,10 @@ class MainProgram:
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
+        query_type = body.get("query_type")
+        query_params = body.get("query_params", {})
         
-        endpoint = body.get("endpoint")
-        params = body.get("query_params", {})
-        
-        if endpoint == "search_by_id":
+        if query_type == "search_by_id":
             graphql_query = {
                 "query": """
                     query ($id: Int) {
@@ -244,9 +260,9 @@ class MainProgram:
                         }
                     }
                 """,
-                "variables": {"id": params.get("id")},
+                "variables": {"id": query_params.get("id")},
             }
-        elif endpoint == "search_by_name":
+        elif query_type == "search_by_name":
             graphql_query = {
                 "query": """
                     query ($name: String, $page: Int, $perPage: Int) {
@@ -264,14 +280,14 @@ class MainProgram:
                             }
                         }
                     }
-                """,
-                "variables": {
-                    "name": params.get("name"),
-                    "page": page,
-                    "perPage": perPage,
-                },
-            }
-        elif endpoint == "search_by_genre":
+            """,
+            "variables": {
+                "name": query_params.get("name"),
+                "page": page,
+                "perPage": perPage
+            },
+        }
+        elif query_type == "search_by_genre":
             graphql_query = {
                 "query": """
                     query ($genre: String, $page: Int, $perPage: Int) {
@@ -291,17 +307,16 @@ class MainProgram:
                     }
                 """,
                 "variables": {
-                    "genre": params.get("genre"),
+                    "genre": query_params.get("genre"),
                     "page": page,
-                    "perPage": perPage,
+                    "perPage": perPage
                 },
             }
         else:
-            raise ValueError(f"Endpoint no identificado: {endpoint}")
+            raise ValueError(f"Consulta no identificada: {query_type}")
         
         response = requests.post(base_url, json=graphql_query, headers=headers)
         return response
-
 
 
 if __name__ == "__main__":
