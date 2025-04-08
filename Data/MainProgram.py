@@ -163,11 +163,24 @@ class MainProgram:
             if api_name in api:
                 return api[api_name]
         raise ValueError(f"No se encontró la configuración para la API: {api_name}")
+ 
 
+    # Llama a la API correspondiente según el nombre de la API
+    def callApi(self, api_name, params):
+        info_api = self.getApiConfig(api_name)
+        if api_name == "nasa":
+            response = self.buildNasaConsult(info_api, params)
+        elif api_name == "myanimelist":
+            response = self.buildMyAnimeConsult(info_api, params)
+        else:
+            response = self.buildAniListConsult(info_api.get("base_url"), params, api_name)
+        return response.json()
 
+    # Métodos para construir consultas específicas (placeholder)-------------
+    
     def buildNasaConsult(self, info_api, params, api_name):
         base_url = info_api.get("base_url")
-        enpoint = info_api.get("endpoint")
+        enpoint = params.get("endpoint")
         api_format = info_api.get("api_format")
         
         token = self.getSources(api_name)
@@ -197,21 +210,6 @@ class MainProgram:
         
         response = requests.get(url, headers=headers)
         return response
-        
-
-
-    # Llama a la API correspondiente según el nombre de la API
-    def callApi(self, api_name, params):
-        info_api = self.getApiConfig(api_name)
-        if api_name == "nasa":
-            response = self.buildNasaConsult(info_api, params)
-        elif api_name == "myanimelist":
-            response = self.buildMyAnimeConsult(info_api, params)
-        else:
-            response = self.buildAniListConsult(info_api.get("base_url"), params, api_name)
-        return response.json()
-
-    # Métodos para construir consultas específicas (placeholder)
 
 
     def buildAniListConsult(self, base_url, body, api_name):
