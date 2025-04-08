@@ -220,10 +220,11 @@ class MainProgram:
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
-        query_type = body.get("query_type")
-        query_params = body.get("query_params", {})
         
-        if query_type == "search_by_id":
+        endpoint = body.get("endpoint")
+        params = body.get("query_params", {})
+        
+        if endpoint == "search_by_id":
             graphql_query = {
                 "query": """
                     query ($id: Int) {
@@ -240,9 +241,9 @@ class MainProgram:
                         }
                     }
                 """,
-                "variables": {"id": query_params.get("id")},
+                "variables": {"id": params.get("id")},
             }
-        elif query_type == "search_by_name":
+        elif endpoint == "search_by_name":
             graphql_query = {
                 "query": """
                     query ($name: String, $page: Int, $perPage: Int) {
@@ -260,14 +261,14 @@ class MainProgram:
                             }
                         }
                     }
-            """,
-            "variables": {
-                "name": query_params.get("name"),
-                "page": page,
-                "perPage": perPage
-            },
-        }
-        elif query_type == "search_by_genre":
+                """,
+                "variables": {
+                    "name": params.get("name"),
+                    "page": page,
+                    "perPage": perPage,
+                },
+            }
+        elif endpoint == "search_by_genre":
             graphql_query = {
                 "query": """
                     query ($genre: String, $page: Int, $perPage: Int) {
@@ -287,17 +288,17 @@ class MainProgram:
                     }
                 """,
                 "variables": {
-                    "genre": query_params.get("genre"),
+                    "genre": params.get("genre"),
                     "page": page,
-                    "perPage": perPage
+                    "perPage": perPage,
                 },
             }
         else:
-            raise ValueError(f"Consulta no identificada: {query_type}")
+            raise ValueError(f"Endpoint no identificado: {endpoint}")
         
         response = requests.post(base_url, json=graphql_query, headers=headers)
         return response
-"""
+
 
 if __name__ == "__main__":
     try:
@@ -312,4 +313,3 @@ if __name__ == "__main__":
         print(result)
     except Exception as e:
         print(f"Error: {e}")
-"""
