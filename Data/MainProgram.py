@@ -80,6 +80,7 @@ class MainProgram:
                 "response_type": "code",
             }
             auth_url = f"https://anilist.co/api/v2/oauth/authorize?{urlencode(params)}"
+            print(f"Abre esta URL en tu navegador: {auth_url}")  # Mostrar URL en la terminal si no se abre automáticamente
             webbrowser.open(auth_url)
             print("Autoriza la aplicación en el navegador.")
             return None
@@ -90,13 +91,12 @@ class MainProgram:
 
         @app.route("/")
         def callback():
+            print("[DEBUG] Recibiendo código de autorización...")  # Mensaje de depuración
             code = request.args.get("code")
             if code:
-                print("Código de autorización recibido")
+                print(f"[DEBUG] Código de autorización recibido: {code}")
                 self._exchange_auth_code_for_token(code, auth_config)
-                self.shutdown_event.set()  # Marca el evento para detener Flask
-
-                # HTML con JavaScript para cerrar la pestaña automáticamente
+                self.shutdown_event.set()  # Detiene el servidor Flask después de recibir el código
                 return """
                 <html>
                     <body>
@@ -108,18 +108,35 @@ class MainProgram:
                 </html>
                 """
             else:
+                print("[ERROR] No se recibió un código de autorización.")
                 return "Error: No se recibió un código."
 
-        # Ejecutar Flask en un hilo separado
+        # Asegura que Flask se ejecute en un hilo diferente
         def run_flask():
-            app.run(debug=False, port=8080, use_reloader=False)
+            try:
+                print("[DEBUG] Iniciando servidor Flask en el puerto 8080...")  # Mensaje para asegurarse de que Flask se inicie
+                app.run(debug=False, host="0.0.0.0", port=8080, use_reloader=False)
+            except Exception as e:
+                print(f"[ERROR] Error al iniciar el servidor Flask: {e}")
 
         flask_thread = threading.Thread(target=run_flask)
+        flask_thread.daemon = True  # El hilo de Flask se cerrará automáticamente cuando el programa termine
         flask_thread.start()
 
-        # Esperar hasta que la autorización esté completa
-        self.shutdown_event.wait()
-        print("Cerrando servidor Flask...")
+        # Esperamos que el servidor reciba el código de autorización
+        print("[DEBUG] Esperando a que Flask reciba el código de autorización...")
+        timeout = 300  # Tiempo máximo de espera en segundos (5 minutos)
+        elapsed_time = 0
+        while not self.shutdown_event.is_set() and elapsed_time < timeout:
+            time.sleep(1)  # Espera activa para evitar que el servidor se cierre prematuramente
+            elapsed_time += 1
+            if self.shutdown_event.is_set():
+                print("[DEBUG] Código de autorización procesado correctamente.")
+                break
+
+        if not self.shutdown_event.is_set():
+            print("[ERROR] Tiempo de espera agotado. No se recibió el código de autorización.")
+        print("[DEBUG] Servidor Flask ha terminado correctamente.")
 
     # Intercambia el código de autorización por un token de acceso
     def _exchange_auth_code_for_token(self, code, auth_config):
@@ -144,6 +161,7 @@ class MainProgram:
 
         except requests.exceptions.RequestException as e:
             print("Error al obtener el token")
+
 
 #----------------------------------------------------------------------
 
@@ -240,10 +258,10 @@ class MainProgram:
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
-        query_type = body.get("query_type")
+        endpoint = body.get("endpoint")
         query_params = body.get("query_params", {})
         
-        if query_type == "search_by_id":
+        if endpoint == "search_by_id":
             graphql_query = {
                 "query": """
                     query ($id: Int) {
@@ -262,7 +280,7 @@ class MainProgram:
                 """,
                 "variables": {"id": query_params.get("id")},
             }
-        elif query_type == "search_by_name":
+        elif endpoint == "search_by_name":
             graphql_query = {
                 "query": """
                     query ($name: String, $page: Int, $perPage: Int) {
@@ -287,7 +305,7 @@ class MainProgram:
                 "perPage": perPage
             },
         }
-        elif query_type == "search_by_genre":
+        elif endpoint == "search_by_genre":
             graphql_query = {
                 "query": """
                     query ($genre: String, $page: Int, $perPage: Int) {
@@ -313,7 +331,7 @@ class MainProgram:
                 },
             }
         else:
-            raise ValueError(f"Consulta no identificada: {query_type}")
+            raise ValueError(f"Consulta no identificada: {endpoint}")
         
         response = requests.post(base_url, json=graphql_query, headers=headers)
         return response
@@ -321,24 +339,57 @@ class MainProgram:
 
 if __name__ == "__main__":
     try:
+        # Solicitar el archivo YAML al usuario
         yaml_file = input("Introduce el nombre de tu archivo .yml: ")
         if not yaml_file.endswith((".yml", ".yaml")):
             raise ValueError("El archivo debe tener una extensión .yml o .yaml")
         
         program = MainProgram()
-        program.yaml_file = yaml_file
-        
+
+        # Leer el archivo YAML proporcionado por el usuario
         with open(yaml_file, "r") as file:
             data = yaml.safe_load(file)
         
+        # Obtener el nombre de la API
         api_name = data.get("origin")
         if not api_name:
             raise ValueError("No se encontró el campo 'origin' en el archivo .yml")
         
+        # Obtener el cuerpo de la consulta
         body = data.get("jobs", [{}])[0]
-        
+
+        # Intentar obtener el token directamente
+        token_obtenido = program.getSources(api_name)
+
+        # Si no se encuentra el token, iniciar la autorización
+        if not token_obtenido:
+            try:
+                with open(program.yaml_file, "r") as file:
+                    config_data = yaml.safe_load(file)
+                apis = config_data.get("apis", [])
+                auth_config = None
+                for api in apis:
+                    if api_name in api:
+                        auth_config = api[api_name]["auth"]
+                        break
+                if not auth_config:
+                    raise ValueError(f"No se encontró la configuración de autenticación para '{api_name}'.")
+            except Exception as e:
+                print(f"Error al leer el archivo de configuración de autenticación: {e}")
+                exit(1)
+
+            # Iniciar el servidor Flask para obtener el código de autorización
+            program.start_flask_server(auth_config)
+
+            # Intentar obtener el token nuevamente después de la autorización
+            token_obtenido = program.getSources(api_name)
+            if not token_obtenido:
+                raise ValueError(f"No se pudo obtener el token después de la autorización para '{api_name}'.")
+
+        # Llamar a la API correspondiente
         result = program.callApi(api_name, body)
-        
+
+        # Guardar el resultado en un archivo JSON
         output_folder = "output_results"
         os.makedirs(output_folder, exist_ok=True)
         
