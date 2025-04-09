@@ -2,7 +2,7 @@ apis:
   - nasa:
       base_url: "https://api.nasa.gov"
       api_format: "api_key"
-      
+    
       endpoints:
         apod: "/planetary/apod?api_key="
         asteroid_info: "/neo/rest/v1/feed?api_key="
@@ -20,5 +20,3 @@ apis:
   - anilist:
       base_url: "https://graphql.anilist.co/"
       api_format: "Authorization"
-
-      
