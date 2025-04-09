@@ -1,0 +1,14 @@
+origin: myanimelist
+base_name: gesw1_bqds
+jobs:
+  - endpoint: anime_byId
+    param:
+       id: 20
+       fields: "id,title,main_picture"
+    body: 
+    output_table: "anime"
+    output_mode: overwrite
+    extraction_column: "ARQPIB_FEC_PART"
+    curated_layer: false
+    final_layer: master
+    date_format: "%Y%m%d"

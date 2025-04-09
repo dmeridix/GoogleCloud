@@ -31,10 +31,14 @@ class MainProgram:
         try:
             with open(self.yaml_file, "r") as file:
                 data = yaml.safe_load(file)
+                print("Datos cargados del archivo YAML:", data) #depuracio
+                
             apis = data.get("apis", [])
 
             for api in apis:
+                print("API encontrada:", api) #depuracio
                 if api_name in api:
+                    print(f"API {api_name} encontrada en la configuración.") #depuracio
                     if api_name == "anilist":
                         auth_config = api[api_name]["auth"]
                         return self.get_token(auth_config)
@@ -169,10 +173,11 @@ class MainProgram:
     # Llama a la API correspondiente según el nombre de la API
     def callApi(self, api_name, params):
         info_api = self.getApiConfig(api_name)
+        
         if api_name == "nasa":
-            response = self.buildNasaConsult(info_api, params)
+            response = self.buildNasaConsult(info_api, params, api_name)
         elif api_name == "myanimelist":
-            response = self.buildMyAnimeConsult(info_api, params)
+            response = self.buildMyAnimeConsult(info_api, params, api_name)
         else:
             response = self.buildAniListConsult(info_api.get("base_url"), params, api_name)
         return response.json()
@@ -208,14 +213,22 @@ class MainProgram:
         
 
     def buildMyAnimeConsult(self, info_api, params, api_name):
-        base_url = info_api.get("base_url")
-        endpoint_name = info_api.get("endpoint")
         
-        #formatea el endpoint con los parámetros que se hayan proporcionado
+        print(f"api_name: {api_name}")
+        print(f"params: {params}") 
+        
+        base_url = info_api.get("base_url")
+        endpoint_name = params.get("endpoint")
+        
+        print("endpoint_name:", endpoint_name)
+        print("endpoints disponibles:", info_api["endpoints"].keys())
+        
+        # Intenta formatear el endpoint con los parámetros dentro de 'param'
         try:
-            endpoint = info_api["endpoints"][endpoint_name].format(**params)
+            endpoint = info_api["endpoints"][endpoint_name].format(**params["param"])
         except KeyError as e:
-            raise ValueError(f"Falta el parámetro requerido en 'params': {e}")
+            #raise ValueError(f"Falta el parámetro requerido en 'params': {e}")
+            raise ValueError(f"El endpoint '{endpoint_name}' no existe en la configuración.")
         
         # Obtiene el formato de autenticación (api_format) y el token de autenticación
         api_format = info_api.get("api_format")
@@ -320,15 +333,24 @@ class MainProgram:
 
 
 if __name__ == "__main__":
+    #print("Directorio actual de trabajo:", os.getcwd())
+    
     try:
-        yaml_file = input("Introduce el nombre de tu archivo .yml: ")
-        if not yaml_file.endswith((".yml", ".yaml")):
+        user_yaml_file = input("Introduce el nombre de tu archivo .yml: ")
+        if not user_yaml_file.endswith((".yml", ".yaml")):
             raise ValueError("El archivo debe tener una extensión .yml o .yaml")
         
-        program = MainProgram()
-        program.yaml_file = yaml_file
+        # Si el archivo está en el directorio actual, usamos la ruta relativa
+        if not os.path.isabs(user_yaml_file):
+            user_yaml_file = os.path.join(os.getcwd(), user_yaml_file)
         
-        with open(yaml_file, "r") as file:
+        # Verificar si el archivo existe
+        if not os.path.exists(user_yaml_file):
+            raise FileNotFoundError(f"El archivo {user_yaml_file} no se encuentra en el directorio actual.")
+        
+        program = MainProgram()
+        
+        with open(user_yaml_file, "r") as file:
             data = yaml.safe_load(file)
         
         api_name = data.get("origin")
