@@ -1,0 +1,118 @@
+{
+    "data": {
+        "Page": {
+            "media": [
+                {
+                    "id": 20622,
+                    "title": {
+                        "romaji": "Sadon Desu",
+                        "english": "Sudden Death",
+                        "native": "さどんです"
+                    },
+                    "coverImage": {
+                        "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/20622.jpg"
+                    }
+                },
+                {
+                    "id": 1535,
+                    "title": {
+                        "romaji": "DEATH NOTE",
+                        "english": "Death Note",
+                        "native": "DEATH NOTE"
+                    },
+                    "coverImage": {
+                        "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx1535-kUgkcrfOrkUM.jpg"
+                    }
+                },
+                {
+                    "id": 109066,
+                    "title": {
+                        "romaji": "MAGICAL DEATH",
+                        "english": null,
+                        "native": "マジカルDEATH"
+                    },
+                    "coverImage": {
+                        "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/b109066-NC3ZJJzTeBAR.jpg"
+                    }
+                },
+                {
+                    "id": 140728,
+                    "title": {
+                        "romaji": "Fuwafuwa no Shi",
+                        "english": "THE DEATH OF FLUFFY",
+                        "native": "ふわふわの死"
+                    },
+                    "coverImage": {
+                        "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx140728-lb4kQ7kHPaLV.png"
+                    }
+                },
+                {
+                    "id": 20931,
+                    "title": {
+                        "romaji": "Death Parade",
+                        "english": "Death Parade",
+                        "native": "デス・パレード"
+                    },
+                    "coverImage": {
+                        "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/nx20931-bktYqOcxPERi.jpg"
+                    }
+                },
+                {
+                    "id": 99629,
+                    "title": {
+                        "romaji": "Satsuriku no Tenshi",
+                        "english": "Angels of Death",
+                        "native": "殺戮の天使"
+                    },
+                    "coverImage": {
+                        "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx99629-BXyAJ6PDq4sr.jpg"
+                    }
+                },
+                {
+                    "id": 2216,
+                    "title": {
+                        "romaji": "Shigurui",
+                        "english": "Shigurui: Death Frenzy",
+                        "native": "シグルイ"
+                    },
+                    "coverImage": {
+                        "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/nx2216-90YquKJllawX.jpg"
+                    }
+                },
+                {
+                    "id": 14353,
+                    "title": {
+                        "romaji": "Death Billiards",
+                        "english": null,
+                        "native": "デス・ビリヤード"
+                    },
+                    "coverImage": {
+                        "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx14353-aV7ePEFdUQ52.png"
+                    }
+                },
+                {
+                    "id": 148965,
+                    "title": {
+                        "romaji": "Shi no Shounin",
+                        "english": "The Death Vendor",
+                        "native": "死の商人"
+                    },
+                    "coverImage": {
+                        "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx148965-tF3AvBGdo0gH.jpg"
+                    }
+                },
+                {
+                    "id": 7273,
+                    "title": {
+                        "romaji": "Nido to Mezamenu Komori Uta",
+                        "english": "The Death Lullaby",
+                        "native": "二度と目覚めぬ子守唄"
+                    },
+                    "coverImage": {
+                        "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx7273-IuT5EtgdwRx4.png"
+                    }
+                }
+            ]
+        }
+    }
+}

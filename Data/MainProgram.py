@@ -31,14 +31,11 @@ class MainProgram:
         try:
             with open(self.yaml_file, "r") as file:
                 data = yaml.safe_load(file)
-                print("Datos cargados del archivo YAML:", data) #depuracio
                 
             apis = data.get("apis", [])
 
             for api in apis:
-                print("API encontrada:", api) #depuracio
                 if api_name in api:
-                    print(f"API {api_name} encontrada en la configuración.") #depuracio
                     if api_name == "anilist":
                         auth_config = api[api_name]["auth"]
                         return self.get_token(auth_config)
@@ -198,8 +195,16 @@ class MainProgram:
             response = self.buildMyAnimeConsult(info_api, params, api_name)
         else:
             response = self.buildAniListConsult(info_api.get("base_url"), params, api_name)
-        return response.json()
+            
+        if isinstance(response, dict):
+            return response
 
+        # Si es un objeto Response, intentamos devolver el JSON
+        try:
+            return response.json()
+        except ValueError:
+            return {"message": "Respuesta no en formato JSON (puede ser una imagen u otro tipo de contenido)."}
+        
     # Métodos para construir consultas específicas (placeholder)-------------
     
     def buildNasaConsult(self, info_api, params, api_name):
@@ -214,7 +219,7 @@ class MainProgram:
         
         # Formatea el endpoint con los parámetros que se hayan proporcionado
         try:
-            endpoint = raw_endpoint.format(**params)
+            endpoint = raw_endpoint.format(**params["param"])
         except KeyError as e:
             raise ValueError(f"Falta el parámetro requerido en 'params' para formatear el endpoint: {e}")
         
@@ -223,24 +228,30 @@ class MainProgram:
         if not token:
              raise ValueError(f"No se pudo obtener el token para la API '{api_name}'")
         
-        # Construye la URL final, añadiendo el token como un parámetro en la URL
-        url = f"{base_url}{endpoint}&{api_format}={token}" 
         
+        # Construcción segura de la URL final
+        url = f"{base_url}{endpoint}{token}"
+                
         response = requests.get(url)
-        return response
+        content_type = response.headers.get("Content-Type", "")
+
+        if "application/json" in content_type:
+            return response.json()  # Devuelve el JSON como dict
+        elif "image/" in content_type:
+        # Guardar la imagen si lo necesitás
+            with open("imagen_nasa.png", "wb") as f:
+                f.write(response.content)
+            return {"message": "Imagen recibida y guardada como imagen_nasa.png"}
+        else:
+            print(f"Tipo de contenido no manejado: {content_type}")
+        return {"error": "Tipo de respuesta desconocido", "content_type": content_type}
         
 
     def buildMyAnimeConsult(self, info_api, params, api_name):
         
-        print(f"api_name: {api_name}")
-        print(f"params: {params}") 
-        
         base_url = info_api.get("base_url")
         endpoint_name = params.get("endpoint")
-        
-        print("endpoint_name:", endpoint_name)
-        print("endpoints disponibles:", info_api["endpoints"].keys())
-        
+    
         # Intenta formatear el endpoint con los parámetros dentro de 'param'
         try:
             endpoint = info_api["endpoints"][endpoint_name].format(**params["param"])

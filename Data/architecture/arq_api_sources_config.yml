@@ -6,9 +6,10 @@ apis:
       endpoints:
         apod: "/planetary/apod?api_key="
         asteroid_info: "/neo/rest/v1/feed?api_key="
-        exploration_reports: "/techtransfer/patent/?engine&api_key="
+        technologies_search: "/techtransfer/patent/?engine&api_key="
         earth_image: "/planetary/earth/imagery?lon={lon}&lat={lat}&dim={dim}&api_key="
-
+        
+      
   - myanimelist:
       base_url: "https://api.myanimelist.net/v2/anime/"
       api_format: "X-MAL-CLIENT-ID"
